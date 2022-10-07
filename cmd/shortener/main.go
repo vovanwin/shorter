@@ -36,7 +36,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		data, err := io.ReadAll(r.Body)
 		longLink := string(data[:])
-		u := IsUrl(longLink)
+		u := IsURL(longLink)
 
 		if err != nil {
 			http.Error(w, err.Error(), 400)
@@ -50,12 +50,12 @@ func run(w http.ResponseWriter, r *http.Request) {
 		println(u)
 
 		code := NewCode()
-		var newUrl = urlLink{
+		var newURL = urlLink{
 			ID:    time.Now().UnixNano(),
 			Long:  longLink,
 			Short: code,
 		}
-		array = append(array, newUrl)
+		array = append(array, newURL)
 
 		w.WriteHeader(http.StatusCreated)
 		shortLink := concat2builder("http://", Domain, "/", code)
@@ -101,7 +101,7 @@ func concat2builder(http, x, z, y string) string {
 	return builder.String()
 }
 
-func IsUrl(str string) bool {
+func IsURL(str string) bool {
 	u, err := url.Parse(str)
 	if err != nil || u.Scheme == "" || u.Host == "" {
 		return false
