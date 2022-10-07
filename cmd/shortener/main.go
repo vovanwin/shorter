@@ -14,7 +14,7 @@ const (
 	alphabet   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	length     = len(alphabet)
 	CodeLength = 6
-	Domain     = "localhost:8080"
+	Domain     = "127.0.0.1:8080"
 )
 
 var array []urlLink
