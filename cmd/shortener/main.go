@@ -1,12 +1,11 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -18,53 +17,46 @@ const (
 	Domain     = "localhost:8080"
 )
 
-var array []url
+var array []urlLink
 
 // Обработчик.
 func run(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		path := r.URL.Path[1:]
 
-		var newUrl = url{
-			ID:    time.Now().UnixNano(),
-			Long:  "sdfsd",
-			Short: "dsfsdf",
-		}
-		array = append(array, newUrl)
-
-		j, err := json.Marshal(array)
-		if err != nil {
-			fmt.Printf("Error: %s", err.Error())
-		} else {
-			fmt.Println(string(j))
-		}
 		for _, value := range array {
 			if value.Short == path {
-				fmt.Println(value.Short)
-				w.WriteHeader(http.StatusTemporaryRedirect)
 				w.Header().Set("Location", value.Long)
+				w.WriteHeader(http.StatusTemporaryRedirect)
+				w.Write([]byte(value.Long))
 			}
 		}
 	}
 
 	if r.Method == http.MethodPost {
 		data, err := io.ReadAll(r.Body)
+		longLink := string(data[:])
+		u := IsUrl(longLink)
+
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), 400)
 			return
 		}
-		longLink := string(data[:])
+		if u == false {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		println(u)
 
 		code := NewCode()
-		var newUrl = url{
+		var newUrl = urlLink{
 			ID:    time.Now().UnixNano(),
 			Long:  longLink,
 			Short: code,
 		}
 		array = append(array, newUrl)
 
-		fmt.Println(longLink)
-		fmt.Println(array)
 		w.WriteHeader(http.StatusCreated)
 		shortLink := concat2builder(Domain, "/", code)
 		w.Write([]byte(shortLink))
@@ -82,7 +74,7 @@ func main() {
 	log.Fatal(err)
 }
 
-type url struct {
+type urlLink struct {
 	ID    int64  `json:"ID"`
 	Long  string `json:"Long"`
 	Short string `json:"Short"`
@@ -106,4 +98,12 @@ func concat2builder(x, z, y string) string {
 	builder.WriteString(z)
 	builder.WriteString(y)
 	return builder.String()
+}
+
+func IsUrl(str string) bool {
+	u, err := url.Parse(str)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+	return true
 }
