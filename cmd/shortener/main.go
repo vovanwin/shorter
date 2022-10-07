@@ -58,7 +58,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 		array = append(array, newUrl)
 
 		w.WriteHeader(http.StatusCreated)
-		shortLink := concat2builder(Domain, "/", code)
+		shortLink := concat2builder("http://", Domain, "/", code)
 		w.Write([]byte(shortLink))
 	}
 
@@ -91,9 +91,10 @@ func NewCode() string {
 	return string(code)
 }
 
-func concat2builder(x, z, y string) string {
+func concat2builder(http, x, z, y string) string {
 	var builder strings.Builder
-	builder.Grow(len(x) + len(z) + len(y)) // Только эта строка выделяет память
+	builder.Grow(len(http) + len(x) + len(z) + len(y)) // Только эта строка выделяет память
+	builder.WriteString(http)
 	builder.WriteString(x)
 	builder.WriteString(z)
 	builder.WriteString(y)
