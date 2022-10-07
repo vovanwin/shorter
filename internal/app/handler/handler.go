@@ -49,7 +49,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	if u == false {
+	if !u {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
