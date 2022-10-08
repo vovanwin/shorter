@@ -55,19 +55,9 @@ func TestRun(t *testing.T) {
 			},
 		},
 		{
-			name: "Нет ссылки",
+			name: "редирект",
 			want: want{
-				code:        400,
-				contentType: "",
-				method:      http.MethodPost,
-				body:        "https://",
-				path:        "/",
-			},
-		},
-		{
-			name: "Нет ссылки",
-			want: want{
-				code:        200,
+				code:        307,
 				contentType: "Location",
 				method:      http.MethodGet,
 				body:        "https://yandex.ru/search/?text=golang+%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%B8%D1%82%D1%8C+%D1%82%D0%B8%D0%BF&lr=35",
@@ -88,7 +78,7 @@ func TestRun(t *testing.T) {
 				// запускаем сервер
 				h.ServeHTTP(w, request)
 				res := w.Result()
-
+				_ = res.Body.Close()
 				assert.Equal(t, tt.want.code, res.StatusCode)
 			}
 
@@ -98,7 +88,7 @@ func TestRun(t *testing.T) {
 					Long:  tt.want.body,
 					Short: tt.want.path,
 				}
-				_ = append(array, newURL)
+				array = append(array, newURL)
 
 				request := httptest.NewRequest(tt.want.method, "/"+tt.want.path, nil)
 
@@ -109,6 +99,8 @@ func TestRun(t *testing.T) {
 				// запускаем сервер
 				h.ServeHTTP(w, request)
 				res := w.Result()
+
+				_ = res.Body.Close()
 
 				assert.Equal(t, tt.want.code, res.StatusCode)
 			}
