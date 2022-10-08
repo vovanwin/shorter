@@ -35,10 +35,10 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		if value.Short == path {
 			w.Header().Set("Location", value.Long)
 			w.WriteHeader(http.StatusTemporaryRedirect)
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 	}
+	w.WriteHeader(http.StatusBadRequest)
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {

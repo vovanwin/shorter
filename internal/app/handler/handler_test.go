@@ -35,7 +35,7 @@ func TestRun(t *testing.T) {
 			},
 		},
 		{
-			name: "Есть ссылка в body",
+			name: "Создание короткой ссылки",
 			want: want{
 				code:        201,
 				contentType: "",
