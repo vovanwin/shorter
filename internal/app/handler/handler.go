@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var array []model.UrlLink
+var array []model.URLLink
 
 func Redirect(w http.ResponseWriter, r *http.Request) {
 	path := chi.URLParam(r, "shortUrl")
@@ -41,7 +41,7 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := helper.NewCode()
-	var newURL = model.UrlLink{ID: time.Now().UnixNano(), Long: longLink, Short: code}
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Short: code}
 	array = append(array, newURL)
 
 	w.WriteHeader(http.StatusCreated)

@@ -97,7 +97,7 @@ func TestRedirect(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		var newURL = model.UrlLink{
+		var newURL = model.URLLink{
 			ID:    time.Now().UnixNano(),
 			Long:  tt.want.body,
 			Short: tt.want.path,
