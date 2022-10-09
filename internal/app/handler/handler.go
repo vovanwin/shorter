@@ -6,7 +6,6 @@ import (
 	"github.com/vovanwin/shorter/internal/app/helper"
 	"github.com/vovanwin/shorter/internal/app/model"
 	"io"
-	"log"
 	"net/http"
 	"time"
 )
@@ -30,7 +29,6 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		log.Fatal("Ошибка чтения тела запроса")
 		return
 	}
 
@@ -39,7 +37,6 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 
 	if !u {
 		w.WriteHeader(http.StatusBadRequest)
-		log.Fatal("Ошибка проверки ссылки на валидность")
 		return
 	}
 

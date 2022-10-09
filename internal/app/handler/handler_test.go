@@ -1,17 +1,18 @@
 package handler
 
 import (
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/stretchr/testify/assert"
-	"strings"
-	"time"
-
+	"github.com/vovanwin/shorter/internal/app/model"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 )
 
-func TestRun(t *testing.T) {
-
+func TestCreateShortLink(t *testing.T) {
 	type want struct {
 		code        int
 		body        string
@@ -54,6 +55,35 @@ func TestRun(t *testing.T) {
 				path:        "/",
 			},
 		},
+	}
+	for _, tt := range tests {
+		bodyReader := strings.NewReader(tt.want.body)
+		request := httptest.NewRequest(tt.want.method, tt.want.path, bodyReader)
+
+		w := httptest.NewRecorder()
+		h := CreateNewServer()
+		h.MountHandlers()
+		h.Router.ServeHTTP(w, request)
+
+		res := w.Result()
+		_ = res.Body.Close()
+		assert.Equal(t, tt.want.code, res.StatusCode)
+	}
+}
+
+func TestRedirect(t *testing.T) {
+	type want struct {
+		code        int
+		body        string
+		contentType string
+		method      string
+		path        string
+	}
+
+	tests := []struct {
+		name string
+		want want
+	}{
 		{
 			name: "редирект",
 			want: want{
@@ -65,45 +95,47 @@ func TestRun(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.want.method == http.MethodPost {
-				bodyReader := strings.NewReader(tt.want.body)
-				request := httptest.NewRequest(tt.want.method, tt.want.path, bodyReader)
+		var newURL = model.UrlLink{
+			ID:    time.Now().UnixNano(),
+			Long:  tt.want.body,
+			Short: tt.want.path,
+		}
+		array = append(array, newURL)
 
-				// создаём новый Recorder
-				w := httptest.NewRecorder()
-				// определяем хендлер
-				h := http.HandlerFunc(Run)
-				// запускаем сервер
-				h.ServeHTTP(w, request)
-				res := w.Result()
-				_ = res.Body.Close()
-				assert.Equal(t, tt.want.code, res.StatusCode)
-			}
+		request := httptest.NewRequest(tt.want.method, "/"+tt.want.path, nil)
 
-			if tt.want.method == http.MethodGet {
-				var newURL = urlLink{
-					ID:    time.Now().UnixNano(),
-					Long:  tt.want.body,
-					Short: tt.want.path,
-				}
-				array = append(array, newURL)
+		w := httptest.NewRecorder()
+		h := CreateNewServer()
+		h.MountHandlers()
+		h.Router.ServeHTTP(w, request)
+		res := w.Result()
 
-				request := httptest.NewRequest(tt.want.method, "/"+tt.want.path, nil)
+		_ = res.Body.Close()
 
-				// создаём новый Recorder
-				w := httptest.NewRecorder()
-				// определяем хендлер
-				h := http.HandlerFunc(Run)
-				// запускаем сервер
-				h.ServeHTTP(w, request)
-				res := w.Result()
-
-				_ = res.Body.Close()
-
-				assert.Equal(t, tt.want.code, res.StatusCode)
-			}
-		})
+		assert.Equal(t, tt.want.code, res.StatusCode)
 	}
+}
+
+type Server struct {
+	Router *chi.Mux
+	// Db, config can be added here
+}
+
+func CreateNewServer() *Server {
+	s := &Server{}
+	s.Router = chi.NewRouter()
+	return s
+}
+
+func (s *Server) MountHandlers() {
+
+	s.Router.Use(middleware.RequestID)
+	s.Router.Use(middleware.RealIP)
+	s.Router.Use(middleware.Logger)
+	s.Router.Use(middleware.Recoverer)
+
+	s.Router.Get("/{shortUrl}", Redirect)
+	s.Router.Post("/", CreateShortLink)
 }
