@@ -1,36 +1,20 @@
 package handler
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/vovanwin/shorter/internal/app/config"
 	"github.com/vovanwin/shorter/internal/app/helper"
+	"github.com/vovanwin/shorter/internal/app/model"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
 
-var array []urlLink
+var array []model.UrlLink
 
-type urlLink struct {
-	ID    int64  `json:"ID"`
-	Long  string `json:"Long"`
-	Short string `json:"Short"`
-}
-
-// Run Обработчик.
-func Run(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		getHandler(w, r)
-	}
-
-	if r.Method == http.MethodPost {
-		postHandler(w, r)
-	}
-
-}
-
-func getHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path[1:]
-
+func Redirect(w http.ResponseWriter, r *http.Request) {
+	path := chi.URLParam(r, "shortUrl")
 	for _, value := range array {
 		if value.Short == path {
 			w.Header().Set("Location", value.Long)
@@ -41,26 +25,26 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-func postHandler(w http.ResponseWriter, r *http.Request) {
+func CreateShortLink(w http.ResponseWriter, r *http.Request) {
+
 	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Fatal("Ошибка чтения тела запроса")
+		return
+	}
+
 	longLink := string(data[:])
 	u := helper.IsURL(longLink)
 
-	if err != nil {
-		http.Error(w, err.Error(), 400)
-		return
-	}
 	if !u {
 		w.WriteHeader(http.StatusBadRequest)
+		log.Fatal("Ошибка проверки ссылки на валидность")
 		return
 	}
 
 	code := helper.NewCode()
-	var newURL = urlLink{
-		ID:    time.Now().UnixNano(),
-		Long:  longLink,
-		Short: code,
-	}
+	var newURL = model.UrlLink{ID: time.Now().UnixNano(), Long: longLink, Short: code}
 	array = append(array, newURL)
 
 	w.WriteHeader(http.StatusCreated)
