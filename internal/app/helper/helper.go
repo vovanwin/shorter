@@ -4,7 +4,6 @@ import (
 	"math/rand"
 	"net/url"
 	"strings"
-	"time"
 )
 
 const (
@@ -39,7 +38,6 @@ func NewCode() string {
 
 	code := make([]rune, CodeLength)
 	for i := range code {
-		rand.Seed(time.Now().UnixNano())
 		code[i] = letters[rand.Intn(length)]
 	}
 
