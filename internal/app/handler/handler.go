@@ -27,6 +27,8 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
