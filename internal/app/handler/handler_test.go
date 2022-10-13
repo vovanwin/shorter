@@ -98,9 +98,9 @@ func TestRedirect(t *testing.T) {
 
 	for _, tt := range tests {
 		var newURL = model.URLLink{
-			ID:    time.Now().UnixNano(),
-			Long:  tt.want.body,
-			Short: tt.want.path,
+			ID:   time.Now().UnixNano(),
+			Long: tt.want.body,
+			Code: tt.want.path,
 		}
 		array = append(array, newURL)
 
@@ -114,6 +114,65 @@ func TestRedirect(t *testing.T) {
 
 		_ = res.Body.Close()
 
+		assert.Equal(t, tt.want.code, res.StatusCode)
+	}
+}
+
+func TestShortHandler(t *testing.T) {
+	type want struct {
+		code        int
+		body        string
+		contentType string
+		method      string
+		path        string
+	}
+
+	tests := []struct {
+		name string
+		want want
+	}{
+		{
+			name: "Нет ссылки в body",
+			want: want{
+				code:        400,
+				contentType: "",
+				method:      http.MethodPost,
+				body:        "",
+				path:        "/shorten",
+			},
+		},
+		{
+			name: "Создание короткой ссылки",
+			want: want{
+				code:        201,
+				contentType: "",
+				method:      http.MethodPost,
+				body:        "{  \"url\" : \"https://yandex.ru/search/?text=golang+%D0%B4%D0%BE%D1%81%D1%82%D1%83%D1%82%D1%8C+%D0%B8%D0%B7+%D1%82%D0%B5%D0%BB%D0%B0+%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%D0%B0&lr=35\"}",
+				path:        "/shorten",
+			},
+		},
+		{
+			name: "Не валидная ссылка",
+			want: want{
+				code:        400,
+				contentType: "",
+				method:      http.MethodPost,
+				body:        "{  \"url\" : \"https://\"}",
+				path:        "/shorten",
+			},
+		},
+	}
+	for _, tt := range tests {
+		bodyReader := strings.NewReader(tt.want.body)
+		request := httptest.NewRequest(tt.want.method, tt.want.path, bodyReader)
+
+		w := httptest.NewRecorder()
+		h := CreateNewServer()
+		h.MountHandlers()
+		h.Router.ServeHTTP(w, request)
+
+		res := w.Result()
+		_ = res.Body.Close()
 		assert.Equal(t, tt.want.code, res.StatusCode)
 	}
 }
@@ -136,6 +195,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
 
+	s.Router.Post("/shorten", ShortHandler)
 	s.Router.Get("/{shortUrl}", Redirect)
 	s.Router.Post("/", CreateShortLink)
 }
