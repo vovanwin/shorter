@@ -1,7 +1,8 @@
 package model
 
 type URLLink struct {
-	ID    int64  `json:"ID"`
-	Long  string `json:"Long"`
-	Short string `json:"Short"`
+	ID        int64  `json:"-"`
+	Long      string `json:"url,omitempty"`
+	Code      string `json:"code,omitempty"`
+	ShortLink string `json:"result,omitempty"`
 }

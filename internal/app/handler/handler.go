@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/vovanwin/shorter/internal/app/config"
 	"github.com/vovanwin/shorter/internal/app/helper"
@@ -15,7 +17,7 @@ var array []model.URLLink
 func Redirect(w http.ResponseWriter, r *http.Request) {
 	path := chi.URLParam(r, "shortUrl")
 	for _, value := range array {
-		if value.Short == path {
+		if value.Code == path {
 			w.Header().Set("Location", value.Long)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return
@@ -43,10 +45,46 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := helper.NewCode()
-	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Short: code}
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Code: code}
 	array = append(array, newURL)
 
 	w.WriteHeader(http.StatusCreated)
 	shortLink := helper.Concat2builder("http://", config.Domain, "/", code)
 	w.Write([]byte(shortLink))
+}
+
+func ShortHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	code := helper.NewCode()
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code}
+
+	err := json.NewDecoder(r.Body).Decode(&newURL)
+	defer r.Body.Close()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	u := helper.IsURL(newURL.Long)
+
+	if !u {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	shortLink := helper.Concat2builder("http://", config.Domain, "/", code)
+	newURL.ShortLink = shortLink
+
+	array = append(array, newURL)
+
+	w.WriteHeader(http.StatusCreated)
+	var ReturmURL = model.URLLink{ShortLink: newURL.ShortLink}
+
+	res, err := json.Marshal(ReturmURL)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Write(res)
 }
