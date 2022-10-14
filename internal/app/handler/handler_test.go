@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"fmt"
+	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/stretchr/testify/assert"
+	"github.com/vovanwin/shorter/internal/app/config"
 	"github.com/vovanwin/shorter/internal/app/model"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +15,7 @@ import (
 	"time"
 )
 
-func (h *Handler) TestCreateShortLink(t *testing.T) {
+func TestCreateShortLink(t *testing.T) {
 	type want struct {
 		code        int
 		body        string
@@ -71,7 +74,7 @@ func (h *Handler) TestCreateShortLink(t *testing.T) {
 	}
 }
 
-func (h *Handler) TestRedirect(t *testing.T) {
+func TestRedirect(t *testing.T) {
 	type want struct {
 		code        int
 		body        string
@@ -118,7 +121,12 @@ func (h *Handler) TestRedirect(t *testing.T) {
 	}
 }
 
-func (h *Handler) TestShortHandler(t *testing.T) {
+func TestShortHandler(t *testing.T) {
+	cfg := config.Config{}
+	if err := env.Parse(&cfg); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+
 	type want struct {
 		code        int
 		body        string
@@ -138,7 +146,7 @@ func (h *Handler) TestShortHandler(t *testing.T) {
 				contentType: "",
 				method:      http.MethodPost,
 				body:        "",
-				path:        h.config.BASE_URL,
+				path:        cfg.BASE_URL,
 			},
 		},
 		{
@@ -148,7 +156,7 @@ func (h *Handler) TestShortHandler(t *testing.T) {
 				contentType: "",
 				method:      http.MethodPost,
 				body:        "{  \"url\" : \"https://yandex.ru/search/?text=golang+%D0%B4%D0%BE%D1%81%D1%82%D1%83%D1%82%D1%8C+%D0%B8%D0%B7+%D1%82%D0%B5%D0%BB%D0%B0+%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%D0%B0&lr=35\"}",
-				path:        h.config.BASE_URL,
+				path:        cfg.BASE_URL,
 			},
 		},
 		{
@@ -158,7 +166,7 @@ func (h *Handler) TestShortHandler(t *testing.T) {
 				contentType: "",
 				method:      http.MethodPost,
 				body:        "{  \"url\" : \"https://\"}",
-				path:        h.config.BASE_URL,
+				path:        cfg.BASE_URL,
 			},
 		},
 	}
