@@ -53,7 +53,7 @@ func (h *Handler) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	array = append(array, newURL)
 
 	w.WriteHeader(http.StatusCreated)
-	shortLink := helper.Concat2builder("http://", h.config.SERVER_ADDRESS, "/", code)
+	shortLink := helper.Concat2builder("http://", h.config.ServerAddress, "/", code)
 	w.Write([]byte(shortLink))
 }
 
@@ -77,7 +77,7 @@ func (h *Handler) ShortHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	shortLink := helper.Concat2builder("http://", h.config.SERVER_ADDRESS, "/", code)
+	shortLink := helper.Concat2builder("http://", h.config.ServerAddress, "/", code)
 	newURL.ShortLink = shortLink
 
 	array = append(array, newURL)

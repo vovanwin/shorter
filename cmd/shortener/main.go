@@ -19,5 +19,5 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	s := shorter.CreateNewServer()
 	s.MountHandlers()
-	http.ListenAndServe(cfg.SERVER_ADDRESS, s.Router)
+	http.ListenAndServe(cfg.ServerAddress, s.Router)
 }
