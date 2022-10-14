@@ -14,7 +14,11 @@ import (
 
 var array []model.URLLink
 
-func Redirect(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	config config.Config
+}
+
+func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
 	path := chi.URLParam(r, "shortUrl")
 	for _, value := range array {
 		if value.Code == path {
@@ -26,7 +30,7 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-func CreateShortLink(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 
 	data, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -49,11 +53,11 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	array = append(array, newURL)
 
 	w.WriteHeader(http.StatusCreated)
-	shortLink := helper.Concat2builder("http://", config.Domain, "/", code)
+	shortLink := helper.Concat2builder("http://", h.config.SERVER_ADDRESS, "/", code)
 	w.Write([]byte(shortLink))
 }
 
-func ShortHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	code := helper.NewCode()
@@ -73,7 +77,7 @@ func ShortHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	shortLink := helper.Concat2builder("http://", config.Domain, "/", code)
+	shortLink := helper.Concat2builder("http://", h.config.SERVER_ADDRESS, "/", code)
 	newURL.ShortLink = shortLink
 
 	array = append(array, newURL)

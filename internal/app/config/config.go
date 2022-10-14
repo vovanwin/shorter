@@ -1,6 +1,6 @@
 package config
 
 type Config struct {
-	IsProduction bool   `env:"PRODUCTION"`
-	Domain       string `env:"HOSTS" envSeparator:":" envDefault:"127.0.0.1:8080"`
+	SERVER_ADDRESS string `env:"SERVER_ADDRESS" envSeparator:":" envDefault:"127.0.0.1:8080"`
+	BASE_URL       string `env:"BASE_URL" envDefault:"api/shorter"`
 }

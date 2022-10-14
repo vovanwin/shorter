@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func TestCreateShortLink(t *testing.T) {
+func (h *Handler) TestCreateShortLink(t *testing.T) {
 	type want struct {
 		code        int
 		body        string
@@ -71,7 +71,7 @@ func TestCreateShortLink(t *testing.T) {
 	}
 }
 
-func TestRedirect(t *testing.T) {
+func (h *Handler) TestRedirect(t *testing.T) {
 	type want struct {
 		code        int
 		body        string
@@ -118,7 +118,7 @@ func TestRedirect(t *testing.T) {
 	}
 }
 
-func TestShortHandler(t *testing.T) {
+func (h *Handler) TestShortHandler(t *testing.T) {
 	type want struct {
 		code        int
 		body        string
@@ -138,7 +138,7 @@ func TestShortHandler(t *testing.T) {
 				contentType: "",
 				method:      http.MethodPost,
 				body:        "",
-				path:        "/api/shorten",
+				path:        h.config.BASE_URL,
 			},
 		},
 		{
@@ -148,7 +148,7 @@ func TestShortHandler(t *testing.T) {
 				contentType: "",
 				method:      http.MethodPost,
 				body:        "{  \"url\" : \"https://yandex.ru/search/?text=golang+%D0%B4%D0%BE%D1%81%D1%82%D1%83%D1%82%D1%8C+%D0%B8%D0%B7+%D1%82%D0%B5%D0%BB%D0%B0+%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%D0%B0&lr=35\"}",
-				path:        "/api/shorten",
+				path:        h.config.BASE_URL,
 			},
 		},
 		{
@@ -158,7 +158,7 @@ func TestShortHandler(t *testing.T) {
 				contentType: "",
 				method:      http.MethodPost,
 				body:        "{  \"url\" : \"https://\"}",
-				path:        "/api/shorten",
+				path:        h.config.BASE_URL,
 			},
 		},
 	}
@@ -178,8 +178,8 @@ func TestShortHandler(t *testing.T) {
 }
 
 type Server struct {
-	Router *chi.Mux
-	// Db, config can be added here
+	Router  *chi.Mux
+	Handler Handler
 }
 
 func CreateNewServer() *Server {
@@ -195,7 +195,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
 
-	s.Router.Post("/api/shorten", ShortHandler)
-	s.Router.Get("/{shortUrl}", Redirect)
-	s.Router.Post("/", CreateShortLink)
+	s.Router.Post("/api/shorten", s.Handler.ShortHandler)
+	s.Router.Get("/{shortUrl}", s.Handler.Redirect)
+	s.Router.Post("/", s.Handler.CreateShortLink)
 }
