@@ -195,7 +195,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
 
-	s.Router.Post("/shorten", ShortHandler)
+	s.Router.Post("/api/shorten", ShortHandler)
 	s.Router.Get("/{shortUrl}", Redirect)
 	s.Router.Post("/", CreateShortLink)
 }
