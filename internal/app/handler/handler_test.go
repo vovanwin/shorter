@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/stretchr/testify/assert"
+	"github.com/vovanwin/shorter/internal/app/config"
 	"github.com/vovanwin/shorter/internal/app/model"
 	"net/http"
 	"net/http/httptest"
@@ -98,9 +99,9 @@ func TestRedirect(t *testing.T) {
 
 	for _, tt := range tests {
 		var newURL = model.URLLink{
-			ID:    time.Now().UnixNano(),
-			Long:  tt.want.body,
-			Short: tt.want.path,
+			ID:   time.Now().UnixNano(),
+			Long: tt.want.body,
+			Code: tt.want.path,
 		}
 		array = append(array, newURL)
 
@@ -118,9 +119,68 @@ func TestRedirect(t *testing.T) {
 	}
 }
 
+func TestShortHandler(t *testing.T) {
+	type want struct {
+		code        int
+		body        string
+		contentType string
+		method      string
+		path        string
+	}
+
+	tests := []struct {
+		name string
+		want want
+	}{
+		{
+			name: "Нет ссылки в body",
+			want: want{
+				code:        400,
+				contentType: "",
+				method:      http.MethodPost,
+				body:        "",
+				path:        config.GetConfig().BaseURL,
+			},
+		},
+		{
+			name: "Создание короткой ссылки",
+			want: want{
+				code:        201,
+				contentType: "",
+				method:      http.MethodPost,
+				body:        "{  \"url\" : \"https://yandex.ru/search/?text=golang+%D0%B4%D0%BE%D1%81%D1%82%D1%83%D1%82%D1%8C+%D0%B8%D0%B7+%D1%82%D0%B5%D0%BB%D0%B0+%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%D0%B0&lr=35\"}",
+				path:        config.GetConfig().BaseURL,
+			},
+		},
+		{
+			name: "Не валидная ссылка",
+			want: want{
+				code:        400,
+				contentType: "",
+				method:      http.MethodPost,
+				body:        "{  \"url\" : \"https://\"}",
+				path:        config.GetConfig().BaseURL,
+			},
+		},
+	}
+	for _, tt := range tests {
+		bodyReader := strings.NewReader(tt.want.body)
+		request := httptest.NewRequest(tt.want.method, tt.want.path, bodyReader)
+
+		w := httptest.NewRecorder()
+		h := CreateNewServer()
+		h.MountHandlers()
+		h.Router.ServeHTTP(w, request)
+
+		res := w.Result()
+		_ = res.Body.Close()
+		assert.Equal(t, tt.want.code, res.StatusCode)
+	}
+}
+
 type Server struct {
-	Router *chi.Mux
-	// Db, config can be added here
+	Router  *chi.Mux
+	Handler Handler
 }
 
 func CreateNewServer() *Server {
@@ -136,6 +196,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
 
-	s.Router.Get("/{shortUrl}", Redirect)
-	s.Router.Post("/", CreateShortLink)
+	s.Router.Post("/api/shorten", s.Handler.ShortHandler)
+	s.Router.Get("/{shortUrl}", s.Handler.Redirect)
+	s.Router.Post("/", s.Handler.CreateShortLink)
 }

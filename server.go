@@ -7,8 +7,8 @@ import (
 )
 
 type Server struct {
-	Router *chi.Mux
-	// Db, config can be added here
+	Router  *chi.Mux
+	Handler handler.Handler
 }
 
 func CreateNewServer() *Server {
@@ -24,6 +24,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
 
-	s.Router.Get("/{shortUrl}", handler.Redirect)
-	s.Router.Post("/", handler.CreateShortLink)
+	s.Router.Post("/api/shorten", s.Handler.ShortHandler)
+	s.Router.Get("/{shortUrl}", s.Handler.Redirect)
+	s.Router.Post("/", s.Handler.CreateShortLink)
 }
