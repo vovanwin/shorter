@@ -15,7 +15,6 @@ import (
 var array []model.URLLink
 
 type Handler struct {
-	config config.Config
 }
 
 func (h *Handler) Redirect(w http.ResponseWriter, r *http.Request) {
@@ -53,13 +52,12 @@ func (h *Handler) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	array = append(array, newURL)
 
 	w.WriteHeader(http.StatusCreated)
-	shortLink := helper.Concat2builder("http://", h.config.ServerAddress, "/", code)
+	shortLink := helper.Concat2builder("http://", config.GetConfig().ServerAddress, "/", code)
 	w.Write([]byte(shortLink))
 }
 
 func (h *Handler) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	code := helper.NewCode()
 	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code}
 
@@ -77,7 +75,7 @@ func (h *Handler) ShortHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	shortLink := helper.Concat2builder("http://", h.config.ServerAddress, "/", code)
+	shortLink := helper.Concat2builder("http://", config.GetConfig().ServerAddress, "/", code)
 	newURL.ShortLink = shortLink
 
 	array = append(array, newURL)
