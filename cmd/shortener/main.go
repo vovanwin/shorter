@@ -1,23 +1,30 @@
 package main
 
 import (
-	"fmt"
-	"github.com/caarlos0/env/v6"
-	"github.com/vovanwin/shorter"
 	"github.com/vovanwin/shorter/internal/app/config"
+	"github.com/vovanwin/shorter/internal/app/handler"
+	"github.com/vovanwin/shorter/internal/app/repository"
+	"github.com/vovanwin/shorter/internal/app/service"
 	"math/rand"
 	"net/http"
 	"time"
 )
 
 func main() {
-	cfg := config.Config{}
-	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-
 	rand.Seed(time.Now().UnixNano())
-	s := shorter.CreateNewServer()
+	var repositoryhandler repository.LinkService
+	conf := new(config.Config)
+
+	fileStoragePath := conf.GetConfig().FileStoragePath
+	if fileStoragePath == "" {
+		repositoryhandler = repository.NewMemory()
+	} else {
+		repositoryhandler = repository.NewJson()
+	}
+	repos := repository.NewRepository(repositoryhandler)
+	services := service.NewService(repos)
+
+	s := handler.CreateNewServer(services)
 	s.MountHandlers()
-	http.ListenAndServe(config.GetConfig().ServerAddress, s.Router)
+	http.ListenAndServe(s.Config.GetConfig().ServerAddress, s.Router)
 }
