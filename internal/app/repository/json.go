@@ -5,9 +5,9 @@ import (
 	"github.com/vovanwin/shorter/internal/app/config"
 	"github.com/vovanwin/shorter/internal/app/helper"
 	"github.com/vovanwin/shorter/internal/app/model"
+	"os"
+	"strings"
 )
-
-const fileName = "url.json"
 
 type Json struct {
 	Config config.Config
@@ -67,6 +67,13 @@ func (j *Json) AddLink(model model.URLLink) error {
 	return nil
 }
 
+// Указывает путь в зависимости модульный тест это или реальный запуск приложения
 func (j *Json) getPath() string {
-	return j.Config.GetConfig().FileStoragePath + fileName
+	test := strings.HasSuffix(os.Args[0], ".test")
+
+	if test {
+		return j.Config.GetConfig().FileStoragePathTest
+	}
+	return j.Config.GetConfig().FileStoragePath
+
 }
