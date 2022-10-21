@@ -70,7 +70,7 @@ func TestCreateShortLink(t *testing.T) {
 		if fileStoragePath == "" {
 			repositoryhandler = repository.NewMemory()
 		} else {
-			repositoryhandler = repository.NewJson()
+			repositoryhandler = repository.NewJSON()
 		}
 		repos := repository.NewRepository(repositoryhandler)
 		services := service.NewService(repos)
@@ -127,7 +127,7 @@ func TestRedirect(t *testing.T) {
 		if fileStoragePath == "" {
 			repositoryhandler = repository.NewMemory()
 		} else {
-			repositoryhandler = repository.NewJson()
+			repositoryhandler = repository.NewJSON()
 		}
 		repos := repository.NewRepository(repositoryhandler)
 		services := service.NewService(repos)
@@ -210,7 +210,7 @@ func TestShortHandler(t *testing.T) {
 		if fileStoragePath == "" {
 			repositoryhandler = repository.NewMemory()
 		} else {
-			repositoryhandler = repository.NewJson()
+			repositoryhandler = repository.NewJSON()
 		}
 		repos := repository.NewRepository(repositoryhandler)
 		services := service.NewService(repos)

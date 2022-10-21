@@ -81,6 +81,9 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	newURL.ShortLink = shortLink
 
 	err = s.Service.AddLink(newURL)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	var ReturnURL = model.URLLink{ShortLink: newURL.ShortLink}

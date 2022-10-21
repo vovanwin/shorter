@@ -9,17 +9,17 @@ import (
 	"strings"
 )
 
-type Json struct {
+type JSON struct {
 	Config config.Config
 }
 
-var arrayUrl []model.URLLink
+var arrayURL []model.URLLink
 
-func NewJson() *Json {
-	return &Json{}
+func NewJSON() *JSON {
+	return &JSON{}
 }
 
-func (j *Json) GetLink(code string) (model.URLLink, error) {
+func (j *JSON) GetLink(code string) (model.URLLink, error) {
 	var data model.URLLink
 	jsonRead, err := helper.NewConsumer(j.getPath())
 	urls, _ := jsonRead.ReadEvent()
@@ -38,7 +38,7 @@ func (j *Json) GetLink(code string) (model.URLLink, error) {
 	return data, err
 }
 
-func (j *Json) AddLink(model model.URLLink) error {
+func (j *JSON) AddLink(model model.URLLink) error {
 	jsonRead, err := helper.NewConsumer(j.getPath())
 	if err != nil {
 		return err
@@ -47,14 +47,14 @@ func (j *Json) AddLink(model model.URLLink) error {
 	urls, _ := jsonRead.ReadEvent()
 	jsonRead.Close()
 
-	arrayUrl = append(urls, model)
+	arrayURL = append(urls, model)
 
 	json, err := helper.NewProducer(j.getPath())
 	if err != nil {
 		return err
 	}
 
-	err = json.WriteEvent(&arrayUrl)
+	err = json.WriteEvent(&arrayURL)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func (j *Json) AddLink(model model.URLLink) error {
 }
 
 // Указывает путь в зависимости модульный тест это или реальный запуск приложения
-func (j *Json) getPath() string {
+func (j *JSON) getPath() string {
 	test := strings.HasSuffix(os.Args[0], ".test")
 
 	if test {

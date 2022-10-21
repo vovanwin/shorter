@@ -19,7 +19,7 @@ func main() {
 	if fileStoragePath == "" {
 		repositoryhandler = repository.NewMemory()
 	} else {
-		repositoryhandler = repository.NewJson()
+		repositoryhandler = repository.NewJSON()
 	}
 	repos := repository.NewRepository(repositoryhandler)
 	services := service.NewService(repos)
