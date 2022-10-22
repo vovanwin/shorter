@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/vovanwin/shorter/internal/app/config"
 	"github.com/vovanwin/shorter/internal/app/handler"
 	"github.com/vovanwin/shorter/internal/app/repository"
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	flag.Parse()
 	rand.Seed(time.Now().UnixNano())
 	var repositoryhandler repository.LinkService
 	conf := new(config.Config)
@@ -26,5 +28,6 @@ func main() {
 
 	s := handler.CreateNewServer(services)
 	s.MountHandlers()
+
 	http.ListenAndServe(s.Config.GetConfig().ServerAddress, s.Router)
 }
