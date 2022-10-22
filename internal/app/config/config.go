@@ -13,9 +13,9 @@ var (
 )
 
 func init() {
-	ServerAddress = flag.String("a", "127.0.0.1:8080", "SERVER_ADDRESS")
-	BaseURL = flag.String("b", "/api/shorten", "BASE_URL")
-	FileStoragePath = flag.String("f", "./storage/url.json", "FILE_STORAGE_PATH")
+	ServerAddress = flag.String("a", "", "SERVER_ADDRESS")
+	BaseURL = flag.String("b", "", "BASE_URL")
+	FileStoragePath = flag.String("f", "", "FILE_STORAGE_PATH")
 }
 
 type Config struct {
@@ -30,9 +30,15 @@ func (c Config) GetConfig() Config {
 	if err := env.Parse(&c); err != nil {
 		fmt.Printf("%+v\n", err)
 	}
+	if *ServerAddress != "" {
+		c.ServerAddress = *ServerAddress
+	}
+	if *BaseURL != "" {
+		c.BaseURL = *BaseURL
+	}
+	if *FileStoragePath != "" {
+		c.FileStoragePath = *FileStoragePath
+	}
 
-	c.ServerAddress = *ServerAddress
-	c.BaseURL = *BaseURL
-	c.FileStoragePath = *FileStoragePath
 	return c
 }
