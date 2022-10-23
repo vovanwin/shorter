@@ -12,7 +12,6 @@ import (
 )
 
 func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
 	path := chi.URLParam(r, "shortUrl")
 
 	url, err := s.Service.GetLink(path)
@@ -27,8 +26,13 @@ func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
-	data, err := io.ReadAll(r.Body)
+	reader, err := helper.ReadRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := io.ReadAll(reader)
 	defer r.Body.Close()
 
 	if err != nil {
@@ -53,17 +57,23 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	shortLink := helper.Concat2builder("http://", s.Config.GetConfig().ServerAddress, "/", code)
 	w.Write([]byte(shortLink))
 }
 
 func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
+	reader, err := helper.ReadRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	code := helper.NewCode()
 	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code}
 
-	err := json.NewDecoder(r.Body).Decode(&newURL)
+	err = json.NewDecoder(reader).Decode(&newURL)
 	defer r.Body.Close()
 
 	if err != nil {
