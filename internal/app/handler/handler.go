@@ -12,6 +12,7 @@ import (
 )
 
 func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
 	path := chi.URLParam(r, "shortUrl")
 
 	url, err := s.Service.GetLink(path)
@@ -26,7 +27,7 @@ func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
-
+	w.Header().Set("Content-Type", "text/plain")
 	data, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 
