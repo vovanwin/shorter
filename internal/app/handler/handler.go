@@ -60,7 +60,6 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	code := helper.NewCode()
 	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code}
 
@@ -86,7 +85,6 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	w.WriteHeader(http.StatusCreated)
 	var ReturnURL = model.URLLink{ShortLink: newURL.ShortLink}
 
 	res, err := json.Marshal(ReturnURL)
@@ -94,5 +92,7 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	w.Write(res)
 }

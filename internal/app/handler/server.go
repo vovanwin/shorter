@@ -26,8 +26,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
 	s.Router.Use(middleware.AllowContentEncoding("gzip"))
-	s.Router.Use(middleware.AllowContentType("application/json", "text/plain", "application/x-gzip"))
-	s.Router.Use(middleware.Compress(5, "application/json", "text/plain", "text/html"))
+	s.Router.Use(middleware.Compress(5, "application/json", "text/plain"))
 
 	s.Router.Post("/api/shorten", s.ShortHandler)
 	s.Router.Get("/{shortUrl}", s.Redirect)
