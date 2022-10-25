@@ -8,13 +8,14 @@ import (
 type Memory struct {
 }
 
-var array []model.URLLink
-
 func NewMemory() *Memory {
 	return &Memory{}
 }
 
 func (m *Memory) GetLink(code string) (model.URLLink, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
 	var data model.URLLink
 	var err error
 	for _, value := range array {
@@ -31,6 +32,9 @@ func (m *Memory) GetLink(code string) (model.URLLink, error) {
 }
 
 func (m *Memory) AddLink(model model.URLLink) error {
+	mu.Lock()
+	defer mu.Unlock()
+
 	array = append(array, model)
 	return nil
 }

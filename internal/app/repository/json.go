@@ -31,6 +31,9 @@ func init() {
 }
 
 func (j *JSON) GetLink(code string) (model.URLLink, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
 	var data model.URLLink
 	var err error
 	for _, value := range array {
@@ -47,10 +50,8 @@ func (j *JSON) GetLink(code string) (model.URLLink, error) {
 }
 
 func (j *JSON) AddLink(model model.URLLink) error {
-	jsonRead, err := helper.NewConsumer(j.getPath())
-	if err != nil {
-		return err
-	}
+	mu.Lock()
+	defer mu.Unlock()
 
 	array = append(array, model)
 

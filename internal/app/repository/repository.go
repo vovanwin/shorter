@@ -1,6 +1,12 @@
 package repository
 
-import "github.com/vovanwin/shorter/internal/app/model"
+import (
+	"github.com/vovanwin/shorter/internal/app/model"
+	"sync"
+)
+
+var mu sync.Mutex // Объявляет мьютекс
+var array []model.URLLink
 
 type LinkService interface {
 	GetLink(code string) (model.URLLink, error)
