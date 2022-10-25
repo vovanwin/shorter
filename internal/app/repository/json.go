@@ -13,19 +13,27 @@ type JSON struct {
 	Config config.Config
 }
 
-var arrayURL []model.URLLink
-
 func NewJSON() *JSON {
 	return &JSON{}
 }
 
-func (j *JSON) GetLink(code string) (model.URLLink, error) {
-	var data model.URLLink
-	jsonRead, err := helper.NewConsumer(j.getPath())
+func init() {
+	conf := new(JSON)
+
+	jsonRead, err := helper.NewConsumer(conf.getPath())
+	if err != nil {
+		return
+	}
+
 	urls, _ := jsonRead.ReadEvent()
 	jsonRead.Close()
+	array = urls
+}
 
-	for _, value := range urls {
+func (j *JSON) GetLink(code string) (model.URLLink, error) {
+	var data model.URLLink
+	var err error
+	for _, value := range array {
 		if value.Code == code {
 			data = value
 			break
@@ -44,17 +52,14 @@ func (j *JSON) AddLink(model model.URLLink) error {
 		return err
 	}
 
-	urls, _ := jsonRead.ReadEvent()
-	jsonRead.Close()
-
-	arrayURL = append(urls, model)
+	array = append(array, model)
 
 	json, err := helper.NewProducer(j.getPath())
 	if err != nil {
 		return err
 	}
 
-	err = json.WriteEvent(&arrayURL)
+	err = json.WriteEvent(&array)
 	if err != nil {
 		return err
 	}
