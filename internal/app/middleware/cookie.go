@@ -6,16 +6,18 @@ import (
 	"net/http"
 )
 
+const key = "user"
+
 func UserCookie(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := r.Cookie("token")
 		token := new(helper.Token)
-		var userUuid []byte
+		var userUUID []byte
 		if err != nil {
 
-			userUuid, _ = token.CreateUserId()
+			userUUID, _ = token.CreateUserID()
 
-			userCookie, err := token.Encode(userUuid)
+			userCookie, err := token.Encode(userUUID)
 			if err != nil {
 				return
 			}
@@ -27,11 +29,11 @@ func UserCookie(next http.Handler) http.Handler {
 			}
 			http.SetCookie(w, cookie)
 		} else {
-			userUuid, err = token.Decode(user.Value)
+			userUUID, err = token.Decode(user.Value)
 			if err != nil {
-				userUuid, _ = token.CreateUserId()
+				userUUID, _ = token.CreateUserID()
 
-				userCookie, err := token.Encode(userUuid)
+				userCookie, err := token.Encode(userUUID)
 				if err != nil {
 					return
 				}
@@ -45,7 +47,7 @@ func UserCookie(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx := context.WithValue(r.Context(), "user", userUuid)
+		ctx := context.WithValue(r.Context(), key, userUUID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

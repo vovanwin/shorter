@@ -54,7 +54,7 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := helper.NewCode()
-	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Code: code, UserId: ret}
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Code: code, UserID: ret}
 
 	err = s.Service.AddLink(newURL)
 
@@ -82,7 +82,7 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	var ret [16]byte
 	copy(ret[:], user)
 
-	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code, UserId: ret}
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code, UserID: ret}
 
 	err = json.NewDecoder(reader).Decode(&newURL)
 	defer r.Body.Close()
@@ -106,7 +106,7 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	var ReturnURL = model.URLLink{ShortLink: newURL.ShortLink, UserId: newURL.UserId}
+	var ReturnURL = model.URLLink{ShortLink: newURL.ShortLink, UserID: newURL.UserID}
 
 	res, err := json.Marshal(ReturnURL)
 	if err != nil {
@@ -118,7 +118,7 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func (s *Server) GetUserUrl(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUserURL(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").([]byte)
 	var ret [16]byte
 	copy(ret[:], user)

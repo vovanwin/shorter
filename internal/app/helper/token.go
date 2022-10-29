@@ -13,11 +13,11 @@ type Token struct {
 	config.Config
 }
 
-func (t Token) CreateUserId() ([]byte, error) {
+func (t Token) CreateUserID() ([]byte, error) {
 	return uuid.New().MarshalText()
 }
 
-func (t Token) Encode(userId []byte) (string, error) {
+func (t Token) Encode(userID []byte) (string, error) {
 	// будем использовать AES256, создав ключ длиной 32 байта
 	key := t.GetConfig().Key // ключ шифрования
 
@@ -36,7 +36,7 @@ func (t Token) Encode(userId []byte) (string, error) {
 	// создаём вектор инициализации
 	nonce := []byte(key[len(key)-aesgcm.NonceSize():])
 
-	dst := aesgcm.Seal(nil, nonce, userId, nil) // зашифровываем
+	dst := aesgcm.Seal(nil, nonce, userID, nil) // зашифровываем
 	str := hex.EncodeToString(dst)
 	return str, nil
 }

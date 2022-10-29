@@ -7,7 +7,7 @@ type URLLink struct {
 	Long      string    `json:"url,omitempty"`
 	Code      string    `json:"code,omitempty"`
 	ShortLink string    `json:"result,omitempty"`
-	UserId    uuid.UUID `json:"user_id,omitempty"`
+	UserID    uuid.UUID `json:"user_id,omitempty"`
 }
 
 type UserURLLinks struct {

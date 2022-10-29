@@ -91,7 +91,7 @@ func (j *JSON) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
 	var err error
 
 	for _, value := range array {
-		if value.UserId == user {
+		if value.UserID == user {
 			data = model.UserURLLinks{ShortLink: value.ShortLink, Long: value.Long}
 			response = append(response, data)
 		}
