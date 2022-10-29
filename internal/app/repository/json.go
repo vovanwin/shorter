@@ -86,9 +86,6 @@ func (j *JSON) getPath() string {
 }
 
 func (j *JSON) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
-	mu.Lock()
-	defer mu.Unlock()
-
 	var response []model.UserURLLinks
 	var data model.UserURLLinks
 	var err error
