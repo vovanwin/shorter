@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"github.com/vovanwin/shorter/internal/app/model"
 )
 
@@ -37,4 +38,26 @@ func (m *Memory) AddLink(model model.URLLink) error {
 
 	array = append(array, model)
 	return nil
+}
+
+func (m *Memory) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var response []model.UserURLLinks
+	var data model.UserURLLinks
+	var err error
+
+	for _, value := range array {
+		if value.UserId == user {
+			data = model.UserURLLinks{ShortLink: value.ShortLink, Long: value.Long}
+			response = append(response, data)
+		}
+	}
+
+	if (model.UserURLLinks{} == data) {
+		err = errors.New("ссылка не найдена")
+		return nil, err
+	}
+	return response, nil
 }

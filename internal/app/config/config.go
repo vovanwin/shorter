@@ -23,6 +23,7 @@ type Config struct {
 	BaseURL             string `env:"BASE_URL,required" envDefault:"/api/shorten"`
 	FileStoragePath     string `env:"FILE_STORAGE_PATH" envDefault:"./storage/url.json"`
 	FileStoragePathTest string `env:"FILE_STORAGE_PATH" envDefault:"./../../../storage/test.json"`
+	Key                 string `env:"KEY" envDefault:"hfjvjdjcdsdsdfdshfjvjdjcdsdsdfds"`
 }
 
 // GetConfig TODO: возможно надо сделать синглтон

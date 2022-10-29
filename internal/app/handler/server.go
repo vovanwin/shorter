@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/vovanwin/shorter/internal/app/config"
+	customMiddleware "github.com/vovanwin/shorter/internal/app/middleware"
 	"github.com/vovanwin/shorter/internal/app/service"
 )
 
@@ -21,6 +22,7 @@ func CreateNewServer(service *service.Service) *Server {
 
 func (s *Server) MountHandlers() {
 
+	s.Router.Use(customMiddleware.UserCookie)
 	s.Router.Use(middleware.RequestID)
 	s.Router.Use(middleware.RealIP)
 	s.Router.Use(middleware.Logger)
@@ -28,6 +30,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.AllowContentEncoding("gzip"))
 	s.Router.Use(middleware.Compress(5, "application/json", "text/plain", "application/x-gzip"))
 
+	s.Router.Post("/api/user/urls", s.GetUserUrl)
 	s.Router.Post("/api/shorten", s.ShortHandler)
 	s.Router.Get("/{shortUrl}", s.Redirect)
 	s.Router.Post("/", s.CreateShortLink)

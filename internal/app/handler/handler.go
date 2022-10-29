@@ -26,6 +26,11 @@ func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").([]byte)
+
+	var ret [16]byte
+	copy(ret[:], user)
+
 	reader, err := helper.ReadRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -49,7 +54,7 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := helper.NewCode()
-	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Code: code}
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Code: code, UserId: ret}
 
 	err = s.Service.AddLink(newURL)
 
@@ -64,6 +69,8 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").([]byte)
+
 	reader, err := helper.ReadRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -71,7 +78,11 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := helper.NewCode()
-	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code}
+
+	var ret [16]byte
+	copy(ret[:], user)
+
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code, UserId: ret}
 
 	err = json.NewDecoder(reader).Decode(&newURL)
 	defer r.Body.Close()
@@ -95,7 +106,7 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	var ReturnURL = model.URLLink{ShortLink: newURL.ShortLink}
+	var ReturnURL = model.URLLink{ShortLink: newURL.ShortLink, UserId: newURL.UserId}
 
 	res, err := json.Marshal(ReturnURL)
 	if err != nil {
@@ -104,5 +115,25 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	w.Write(res)
+}
+
+func (s *Server) GetUserUrl(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").([]byte)
+	var ret [16]byte
+	copy(ret[:], user)
+	urls, err := s.Service.GetLinksUser(ret)
+
+	if err != nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	res, err := json.Marshal(urls)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
 }

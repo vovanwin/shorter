@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"github.com/vovanwin/shorter/internal/app/model"
 	"sync"
 )
@@ -10,6 +11,7 @@ var array []model.URLLink
 
 type LinkService interface {
 	GetLink(code string) (model.URLLink, error)
+	GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error)
 	AddLink(model model.URLLink) error
 }
 
