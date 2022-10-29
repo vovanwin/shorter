@@ -6,7 +6,9 @@ import (
 	"net/http"
 )
 
-const key = "user"
+type token string
+
+const key token = "user"
 
 func UserCookie(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
