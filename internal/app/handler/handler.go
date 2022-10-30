@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/vovanwin/shorter/internal/app/helper"
+	"github.com/vovanwin/shorter/internal/app/middleware"
 	"github.com/vovanwin/shorter/internal/app/model"
 	"io"
 	"net/http"
@@ -26,7 +27,7 @@ func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").([]byte)
+	user := r.Context().Value(middleware.Key).([]byte)
 
 	var ret [16]byte
 	copy(ret[:], user)
@@ -69,7 +70,7 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").([]byte)
+	user := r.Context().Value(middleware.Key).([]byte)
 
 	reader, err := helper.ReadRequest(r)
 	if err != nil {
@@ -119,7 +120,7 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetUserURL(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").([]byte)
+	user := r.Context().Value(middleware.Key).([]byte)
 	var ret [16]byte
 	copy(ret[:], user)
 	urls, err := s.Service.GetLinksUser(ret)

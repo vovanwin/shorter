@@ -6,9 +6,9 @@ import (
 	"net/http"
 )
 
-type token string
+type tokenCookie string
 
-const key token = "user"
+const Key tokenCookie = "user"
 
 func UserCookie(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func UserCookie(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx := context.WithValue(r.Context(), key, userUUID)
+		ctx := context.WithValue(r.Context(), Key, userUUID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
