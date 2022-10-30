@@ -44,6 +44,7 @@ func UserCookie(next http.Handler) http.Handler {
 					Value:    userCookie,
 					MaxAge:   0,
 					HttpOnly: true,
+					Path:     "/",
 				}
 				http.SetCookie(w, cookie)
 			}
