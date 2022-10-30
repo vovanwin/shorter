@@ -55,7 +55,9 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := helper.NewCode()
-	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Code: code, UserID: ret}
+	shortLink := helper.Concat2builder("http://", s.Config.GetConfig().ServerAddress, "/", code)
+
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, ShortLink: shortLink, Code: code, UserID: ret}
 
 	err = s.Service.AddLink(newURL)
 
@@ -65,7 +67,6 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	shortLink := helper.Concat2builder("http://", s.Config.GetConfig().ServerAddress, "/", code)
 	w.Write([]byte(shortLink))
 }
 
