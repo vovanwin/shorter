@@ -22,17 +22,17 @@ type Client interface {
 	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
 }
 
-type Db struct {
+type DB struct {
 	pool *pgxpool.Pool
 }
 
-func NewDB(pool *pgxpool.Pool) *Db {
-	return &Db{
+func NewDB(pool *pgxpool.Pool) *DB {
+	return &DB{
 		pool: pool,
 	}
 }
 
-func (m *Db) GetLink(code string) (model.URLLink, error) {
+func (m *DB) GetLink(code string) (model.URLLink, error) {
 	type Greeting struct {
 		ID          string
 		FirstName   string
@@ -56,17 +56,17 @@ func (m *Db) GetLink(code string) (model.URLLink, error) {
 	return model.URLLink{}, nil
 }
 
-func (m *Db) AddLink(model model.URLLink) error {
+func (m *DB) AddLink(model model.URLLink) error {
 
 	return nil
 }
 
-func (m *Db) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
+func (m *DB) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
 
 	return []model.UserURLLinks{}, nil
 }
 
-func (m *Db) Ping() error {
+func (m *DB) Ping() error {
 	var greeting string
 	err := m.pool.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
 	if err != nil {

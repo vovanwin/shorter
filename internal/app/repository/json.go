@@ -105,8 +105,6 @@ func (j *JSON) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
 }
 
 func (j *JSON) Ping() error {
-	var err error
-	err = errors.New("репозиторий не поддерживает БД")
-
+	var err = errors.New("репозиторий не поддерживает БД")
 	return err
 }

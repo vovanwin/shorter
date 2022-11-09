@@ -24,7 +24,8 @@ func main() {
 	)
 
 	pgClient, err := postgresql.NewClient(context.Background(), 5, time.Second*5, pgConfig)
-	if err != nil {
+
+	if conf.GetConfig().DatabaseDsn == "" || err != nil {
 		fileStoragePath := conf.GetConfig().FileStoragePath
 		if fileStoragePath == "" {
 			repositoryhandler = repository.NewMemory()
