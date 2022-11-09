@@ -139,3 +139,14 @@ func (s *Server) GetUserURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
 }
+
+func (s *Server) Ping(w http.ResponseWriter, r *http.Request) {
+
+	err := s.Service.Ping()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

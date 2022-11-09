@@ -58,3 +58,10 @@ func (m *Memory) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
 	}
 	return response, nil
 }
+
+func (m *Memory) Ping() error {
+	var err error
+	err = errors.New("репозиторий не поддерживает БД")
+
+	return err
+}

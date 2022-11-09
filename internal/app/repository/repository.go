@@ -13,6 +13,7 @@ type LinkService interface {
 	GetLink(code string) (model.URLLink, error)
 	GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error)
 	AddLink(model model.URLLink) error
+	Ping() error
 }
 
 type Repository struct {

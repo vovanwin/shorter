@@ -32,6 +32,7 @@ func (s *Server) MountHandlers() {
 
 	s.Router.Get("/api/user/urls", s.GetUserURL)
 	s.Router.Post("/api/shorten", s.ShortHandler)
+	s.Router.Get("/ping", s.Ping)
 	s.Router.Get("/{shortUrl}", s.Redirect)
 	s.Router.Post("/", s.CreateShortLink)
 }

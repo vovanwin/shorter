@@ -25,3 +25,7 @@ func (s *Link) AddLink(model model.URLLink) error {
 func (s *Link) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
 	return s.repo.GetLinksUser(user)
 }
+
+func (s *Link) Ping() error {
+	return s.repo.Ping()
+}
