@@ -93,8 +93,7 @@ func (m *DB) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
 }
 
 func (m *DB) Ping() error {
-	var greeting string
-	err := m.pool.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
+	err := m.pool.Ping(context.Background())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		return err
