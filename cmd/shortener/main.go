@@ -19,13 +19,7 @@ func main() {
 	var repositoryhandler repository.LinkService
 	conf := new(config.Config)
 
-	pgConfig := postgresql.NewPgConfig(
-		conf.GetConfig().DatabaseDsn,
-	)
-
-	pgClient, err := postgresql.NewClient(context.Background(), 5, time.Second*5, pgConfig)
-
-	if conf.GetConfig().DatabaseDsn == "" || err != nil {
+	if conf.GetConfig().DatabaseDsn == "" {
 		fileStoragePath := conf.GetConfig().FileStoragePath
 		if fileStoragePath == "" {
 			repositoryhandler = repository.NewMemory()
@@ -33,6 +27,8 @@ func main() {
 			repositoryhandler = repository.NewJSON()
 		}
 	} else {
+		pgConfig := postgresql.NewPgConfig(conf.GetConfig().DatabaseDsn)
+		pgClient, _ := postgresql.NewClient(context.Background(), 5, time.Second*5, pgConfig)
 		repositoryhandler = repository.NewDB(pgClient)
 	}
 
