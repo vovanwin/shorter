@@ -27,6 +27,7 @@ func main() {
 			repositoryhandler = repository.NewJSON()
 		}
 	} else {
+		print(conf.GetConfig().DatabaseDsn)
 		pgConfig := postgresql.NewPgConfig(conf.GetConfig().DatabaseDsn)
 		pgClient, _ := postgresql.NewClient(context.Background(), 5, time.Second*5, pgConfig)
 		repositoryhandler = repository.NewDB(pgClient)
