@@ -1,7 +1,10 @@
 package helper
 
 import (
+	"compress/gzip"
+	"io"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -42,4 +45,20 @@ func NewCode() string {
 	}
 
 	return string(code)
+}
+
+func ReadRequest(r *http.Request) (io.Reader, error) {
+	var reader io.Reader
+
+	if r.Header.Get(`Content-Encoding`) == `gzip` {
+		gz, err := gzip.NewReader(r.Body)
+		if err != nil {
+			return reader, err
+		}
+		reader = gz
+		defer gz.Close()
+	} else {
+		reader = r.Body
+	}
+	return reader, nil
 }
