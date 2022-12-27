@@ -13,7 +13,7 @@ import (
 )
 
 func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
-	path := chi.URLParam(r, "ShortURL")
+	path := chi.URLParam(r, "shortUrl")
 
 	url, err := s.Service.GetLink(path)
 
