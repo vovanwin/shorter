@@ -13,7 +13,7 @@ import (
 )
 
 func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
-	path := chi.URLParam(r, "shortUrl")
+	path := chi.URLParam(r, "ShortURL")
 
 	url, err := s.Service.GetLink(path)
 
@@ -153,12 +153,12 @@ func (s *Server) BatchShorten(w http.ResponseWriter, r *http.Request) {
 
 	type UserURLLinks struct {
 		Correlation string `json:"correlation_id,omitempty"`
-		OriginalUrl string `json:"original_url,omitempty"`
+		OriginalURL string `json:"original_url,omitempty"`
 	}
 
 	type UserURLLinksResponse struct {
 		Correlation string `json:"correlation_id,omitempty"`
-		ShortUrl    string `json:"short_url,omitempty"`
+		ShortURL    string `json:"short_url,omitempty"`
 	}
 
 	var arrURL []UserURLLinks
@@ -177,7 +177,7 @@ func (s *Server) BatchShorten(w http.ResponseWriter, r *http.Request) {
 	var arrURLResponse []UserURLLinksResponse
 
 	for _, urlValue := range arrURL {
-		u := helper.IsURL(urlValue.OriginalUrl)
+		u := helper.IsURL(urlValue.OriginalURL)
 		if !u {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -189,12 +189,12 @@ func (s *Server) BatchShorten(w http.ResponseWriter, r *http.Request) {
 		shortLink := helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", code)
 
 		newURL.ShortLink = shortLink
-		newURL.Long = urlValue.OriginalUrl
+		newURL.Long = urlValue.OriginalURL
 		err = s.Service.AddLink(newURL)
 		if err != nil {
 			fmt.Println(err)
 		}
-		arrURLResponse = append(arrURLResponse, UserURLLinksResponse{ShortUrl: shortLink, Correlation: urlValue.Correlation})
+		arrURLResponse = append(arrURLResponse, UserURLLinksResponse{ShortURL: shortLink, Correlation: urlValue.Correlation})
 	}
 
 	res, err := json.Marshal(arrURLResponse)
