@@ -132,7 +132,7 @@ func TestRedirect(t *testing.T) {
 		repos := repository.NewRepository(repositoryhandler)
 		services := service.NewService(repos)
 
-		err := services.AddLink(newURL)
+		_, err := services.AddLink(newURL)
 		if err != nil {
 			return
 		}
