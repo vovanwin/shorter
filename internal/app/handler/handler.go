@@ -118,7 +118,8 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	if codeEvents == "23505" {
 		url, _ := s.Service.GetLinkByLong(newURL.Long)
 
-		ReturnURL.ShortLink = url.ShortLink
+		shortLink = helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", url.Code)
+		ReturnURL.ShortLink = shortLink
 		ReturnURL.UserID = url.UserID
 		w.WriteHeader(http.StatusConflict)
 	} else {
