@@ -1,32 +1,44 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi/v5"
-	"github.com/vovanwin/shorter/internal/app/config"
 	"github.com/vovanwin/shorter/internal/app/helper"
+	"github.com/vovanwin/shorter/internal/app/middleware"
 	"github.com/vovanwin/shorter/internal/app/model"
 	"io"
 	"net/http"
 	"time"
 )
 
-var array []model.URLLink
-
-func Redirect(w http.ResponseWriter, r *http.Request) {
+func (s *Server) Redirect(w http.ResponseWriter, r *http.Request) {
 	path := chi.URLParam(r, "shortUrl")
-	for _, value := range array {
-		if value.Short == path {
-			w.Header().Set("Location", value.Long)
-			w.WriteHeader(http.StatusTemporaryRedirect)
-			return
-		}
+
+	url, err := s.Service.GetLink(path)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
-	w.WriteHeader(http.StatusBadRequest)
+
+	w.Header().Set("Location", url.Long)
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func CreateShortLink(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(middleware.Key).([]byte)
 
-	data, err := io.ReadAll(r.Body)
+	var ret [16]byte
+	copy(ret[:], user)
+
+	reader, err := helper.ReadRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := io.ReadAll(reader)
 	defer r.Body.Close()
 
 	if err != nil {
@@ -43,10 +55,186 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := helper.NewCode()
-	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, Short: code}
-	array = append(array, newURL)
+	shortLink := helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", code)
 
-	w.WriteHeader(http.StatusCreated)
-	shortLink := helper.Concat2builder("http://", config.Domain, "/", code)
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, ShortLink: shortLink, Code: code, UserID: ret}
+
+	codeEvents := ""
+	codeEvents, err = s.Service.AddLink(newURL)
+	w.Header().Set("Content-Type", "text/plain")
+	if codeEvents == "23505" {
+		url, _ := s.Service.GetLinkByLong(newURL.Long)
+		shortLink = helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", url.Code)
+		w.WriteHeader(http.StatusConflict)
+	} else {
+
+		w.WriteHeader(http.StatusCreated)
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	w.Write([]byte(shortLink))
+}
+
+func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(middleware.Key).([]byte)
+
+	reader, err := helper.ReadRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	code := helper.NewCode()
+
+	var ret [16]byte
+	copy(ret[:], user)
+
+	var newURL = model.URLLink{ID: time.Now().UnixNano(), Code: code, UserID: ret}
+
+	err = json.NewDecoder(reader).Decode(&newURL)
+	defer r.Body.Close()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	u := helper.IsURL(newURL.Long)
+
+	if !u {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	shortLink := helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", code)
+	newURL.ShortLink = shortLink
+
+	codeEvents := ""
+	codeEvents, err = s.Service.AddLink(newURL)
+	var ReturnURL = model.URLLink{}
+	w.Header().Set("Content-Type", "application/json")
+	if codeEvents == "23505" {
+		url, _ := s.Service.GetLinkByLong(newURL.Long)
+
+		shortLink = helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", url.Code)
+		ReturnURL.ShortLink = shortLink
+		ReturnURL.UserID = url.UserID
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		ReturnURL.ShortLink = newURL.ShortLink
+		ReturnURL.UserID = newURL.UserID
+		w.WriteHeader(http.StatusCreated)
+	}
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	res, err := json.Marshal(ReturnURL)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Write(res)
+}
+
+func (s *Server) GetUserURL(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(middleware.Key).([]byte)
+	var ret [16]byte
+	copy(ret[:], user)
+	urls, err := s.Service.GetLinksUser(ret)
+
+	if err != nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	res, err := json.Marshal(urls)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
+}
+
+func (s *Server) BatchShorten(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(middleware.Key).([]byte)
+	reader, err := helper.ReadRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var ret [16]byte
+	copy(ret[:], user)
+
+	type UserURLLinks struct {
+		Correlation string `json:"correlation_id,omitempty"`
+		OriginalURL string `json:"original_url,omitempty"`
+	}
+
+	type UserURLLinksResponse struct {
+		Correlation string `json:"correlation_id,omitempty"`
+		ShortURL    string `json:"short_url,omitempty"`
+	}
+
+	var arrURL []UserURLLinks
+
+	//err = json.NewDecoder(reader).Decode(&arrURL)
+	err = json.NewDecoder(reader).Decode(&arrURL)
+
+	defer r.Body.Close()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var newURL = model.URLLink{}
+	var arrURLResponse []UserURLLinksResponse
+
+	for _, urlValue := range arrURL {
+		u := helper.IsURL(urlValue.OriginalURL)
+		if !u {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		code := helper.NewCode()
+		newURL.ID = time.Now().UnixNano()
+		newURL.UserID = ret
+		newURL.Code = code
+		shortLink := helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", code)
+
+		newURL.ShortLink = shortLink
+		newURL.Long = urlValue.OriginalURL
+		_, err = s.Service.AddLink(newURL)
+		if err != nil {
+			fmt.Println(err)
+		}
+		arrURLResponse = append(arrURLResponse, UserURLLinksResponse{ShortURL: shortLink, Correlation: urlValue.Correlation})
+	}
+
+	res, err := json.Marshal(arrURLResponse)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(res)
+}
+
+func (s *Server) Ping(w http.ResponseWriter, r *http.Request) {
+
+	err := s.Service.Ping()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

@@ -1,7 +1,10 @@
 package helper
 
 import (
+	"compress/gzip"
+	"io"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -23,10 +26,11 @@ func IsURL(str string) bool {
 	return true
 }
 
-func Concat2builder(http, x, z, y string) string {
+func Concat2builder(x, z, y string) string {
+	var httpScheme = "http://"
 	var builder strings.Builder
-	builder.Grow(len(http) + len(x) + len(z) + len(y)) // Только эта строка выделяет память
-	builder.WriteString(http)
+	builder.Grow(len(httpScheme) + len(x) + len(z) + len(y)) // Только эта строка выделяет память
+	builder.WriteString(httpScheme)
 	builder.WriteString(x)
 	builder.WriteString(z)
 	builder.WriteString(y)
@@ -42,4 +46,20 @@ func NewCode() string {
 	}
 
 	return string(code)
+}
+
+func ReadRequest(r *http.Request) (io.Reader, error) {
+	var reader io.Reader
+
+	if r.Header.Get(`Content-Encoding`) == `gzip` {
+		gz, err := gzip.NewReader(r.Body)
+		if err != nil {
+			return reader, err
+		}
+		reader = gz
+		defer gz.Close()
+	} else {
+		reader = r.Body
+	}
+	return reader, nil
 }
