@@ -5,23 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vovanwin/shorter/internal/app/config"
 	"github.com/vovanwin/shorter/internal/app/model"
 	"log"
 	"os"
 )
-
-type Client interface {
-	Begin(context.Context) (pgx.Tx, error)
-	BeginFunc(ctx context.Context, f func(pgx.Tx) error) error
-	BeginTxFunc(ctx context.Context, txOptions pgx.TxOptions, f func(pgx.Tx) error) error
-	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
-	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
-}
 
 type DB struct {
 	pool   *pgxpool.Pool
@@ -52,18 +41,46 @@ func (m *DB) GetLink(code string) (model.URLLink, error) {
 	return ps, err
 }
 
-func (m *DB) AddLink(model model.URLLink) error {
+func (m *DB) GetLinkByLong(long string) (model.URLLink, error) {
+	var ps model.URLLink
+	var err error
+
+	err = m.pool.QueryRow(context.Background(), "select id, code, long, user_id from public.url_link  where long = $1 LIMIT 1", long).Scan(
+		&ps.ID,
+		&ps.Code,
+		&ps.Long,
+		&ps.UserID,
+	)
+	fmt.Print(ps)
+	if err != nil {
+		err = errors.New("ссылка не найдена")
+	}
+
+	return ps, err
+}
+
+func (m *DB) AddLink(model model.URLLink) (string, error) {
 	row := m.pool.QueryRow(context.Background(),
 		"INSERT INTO public.url_link  (long, code, user_id) VALUES ($1, $2, $3) RETURNING id",
 		model.Long, model.Code, model.UserID)
 
 	var id uint64
 	err := row.Scan(&id)
+
+	if err != nil {
+		s := err.Error()
+		if s == "ERROR: duplicate key value violates unique constraint \"url_link_long_key\" (SQLSTATE 23505)" {
+
+			return "23505", nil
+		}
+
+	}
+
 	if err != nil {
 		fmt.Printf("Unable to INSERT: %v\n", err)
-		return err
+		return "", err
 	}
-	return nil
+	return "", nil
 }
 
 func (m *DB) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {

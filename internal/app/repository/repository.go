@@ -11,8 +11,9 @@ var array []model.URLLink
 
 type LinkService interface {
 	GetLink(code string) (model.URLLink, error)
+	GetLinkByLong(long string) (model.URLLink, error)
 	GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error)
-	AddLink(model model.URLLink) error
+	AddLink(model model.URLLink) (string, error)
 	Ping() error
 }
 

@@ -50,7 +50,26 @@ func (j *JSON) GetLink(code string) (model.URLLink, error) {
 	return data, err
 }
 
-func (j *JSON) AddLink(model model.URLLink) error {
+func (j *JSON) GetLinkByLong(code string) (model.URLLink, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var data model.URLLink
+	var err error
+	for _, value := range array {
+		if value.Code == code {
+			data = value
+			break
+		}
+	}
+
+	if (model.URLLink{} == data) {
+		err = errors.New("ссылка не найдена")
+	}
+	return data, err
+}
+
+func (j *JSON) AddLink(model model.URLLink) (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -58,20 +77,20 @@ func (j *JSON) AddLink(model model.URLLink) error {
 
 	json, err := helper.NewProducer(j.getPath())
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = json.WriteEvent(&array)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = json.Close()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return "", err
 }
 
 // Указывает путь в зависимости модульный тест это или реальный запуск приложения

@@ -18,7 +18,11 @@ func (s *Link) GetLink(code string) (model.URLLink, error) {
 	return s.repo.GetLink(code)
 }
 
-func (s *Link) AddLink(model model.URLLink) error {
+func (s *Link) GetLinkByLong(long string) (model.URLLink, error) {
+	return s.repo.GetLinkByLong(long)
+}
+
+func (s *Link) AddLink(model model.URLLink) (string, error) {
 	return s.repo.AddLink(model)
 }
 

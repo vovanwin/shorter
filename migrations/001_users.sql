@@ -3,7 +3,7 @@
 create table url_link
 (
     id      bigserial primary key,
-    long    text not null,
+    long    text not null UNIQUE,
     code    varchar(10) unique,
     user_id uuid null
 );

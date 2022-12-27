@@ -32,12 +32,31 @@ func (m *Memory) GetLink(code string) (model.URLLink, error) {
 	return data, err
 }
 
-func (m *Memory) AddLink(model model.URLLink) error {
+func (m *Memory) GetLinkByLong(code string) (model.URLLink, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var data model.URLLink
+	var err error
+	for _, value := range array {
+		if value.Code == code {
+			data = value
+			break
+		}
+	}
+
+	if (model.URLLink{} == data) {
+		err = errors.New("ссылка не найдена")
+	}
+	return data, err
+}
+
+func (m *Memory) AddLink(model model.URLLink) (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
 	array = append(array, model)
-	return nil
+	return "", nil
 }
 
 func (m *Memory) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {

@@ -59,14 +59,23 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 
 	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, ShortLink: shortLink, Code: code, UserID: ret}
 
-	err = s.Service.AddLink(newURL)
+	codeEvents := ""
+	codeEvents, err = s.Service.AddLink(newURL)
+	if codeEvents == "23505" {
+		url, _ := s.Service.GetLinkByLong(newURL.Long)
+		shortLink = helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", url.Code)
+		w.WriteHeader(http.StatusConflict)
+	} else {
+
+		w.WriteHeader(http.StatusCreated)
+	}
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
+
 	w.Write([]byte(shortLink))
 }
 
@@ -103,12 +112,24 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	shortLink := helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", code)
 	newURL.ShortLink = shortLink
 
-	err = s.Service.AddLink(newURL)
+	codeEvents := ""
+	codeEvents, err = s.Service.AddLink(newURL)
+	var ReturnURL = model.URLLink{}
+	if codeEvents == "23505" {
+		url, _ := s.Service.GetLinkByLong(newURL.Long)
+
+		ReturnURL.ShortLink = url.ShortLink
+		ReturnURL.UserID = url.UserID
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		ReturnURL.ShortLink = newURL.ShortLink
+		ReturnURL.UserID = newURL.UserID
+		w.WriteHeader(http.StatusCreated)
+	}
+
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	var ReturnURL = model.URLLink{ShortLink: newURL.ShortLink, UserID: newURL.UserID}
 
 	res, err := json.Marshal(ReturnURL)
 	if err != nil {
@@ -190,7 +211,7 @@ func (s *Server) BatchShorten(w http.ResponseWriter, r *http.Request) {
 
 		newURL.ShortLink = shortLink
 		newURL.Long = urlValue.OriginalURL
-		err = s.Service.AddLink(newURL)
+		_, err = s.Service.AddLink(newURL)
 		if err != nil {
 			fmt.Println(err)
 		}
