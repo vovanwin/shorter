@@ -61,6 +61,7 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 
 	codeEvents := ""
 	codeEvents, err = s.Service.AddLink(newURL)
+	w.Header().Set("Content-Type", "text/plain")
 	if codeEvents == "23505" {
 		url, _ := s.Service.GetLinkByLong(newURL.Long)
 		shortLink = helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", url.Code)
@@ -74,7 +75,6 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Type", "text/plain")
 
 	w.Write([]byte(shortLink))
 }
@@ -115,6 +115,7 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 	codeEvents := ""
 	codeEvents, err = s.Service.AddLink(newURL)
 	var ReturnURL = model.URLLink{}
+	w.Header().Set("Content-Type", "application/json")
 	if codeEvents == "23505" {
 		url, _ := s.Service.GetLinkByLong(newURL.Long)
 
@@ -137,7 +138,6 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
 }
 
