@@ -55,7 +55,7 @@ func (s *Server) CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := helper.NewCode()
-	shortLink := helper.Concat2builder("http://", s.Config.GetConfig().ServerAddress, "/", code)
+	shortLink := helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", code)
 
 	var newURL = model.URLLink{ID: time.Now().UnixNano(), Long: longLink, ShortLink: shortLink, Code: code, UserID: ret}
 
@@ -100,7 +100,7 @@ func (s *Server) ShortHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	shortLink := helper.Concat2builder("http://", s.Config.GetConfig().ServerAddress, "/", code)
+	shortLink := helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", code)
 	newURL.ShortLink = shortLink
 
 	err = s.Service.AddLink(newURL)
@@ -137,6 +137,73 @@ func (s *Server) GetUserURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
+}
+
+func (s *Server) BatchShorten(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(middleware.Key).([]byte)
+	reader, err := helper.ReadRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var ret [16]byte
+	copy(ret[:], user)
+
+	type UserURLLinks struct {
+		Correlation string `json:"correlation_id,omitempty"`
+		OriginalUrl string `json:"original_url,omitempty"`
+	}
+
+	type UserURLLinksResponse struct {
+		Correlation string `json:"correlation_id,omitempty"`
+		ShortUrl    string `json:"short_url,omitempty"`
+	}
+
+	var arrURL []UserURLLinks
+
+	//err = json.NewDecoder(reader).Decode(&arrURL)
+	err = json.NewDecoder(reader).Decode(&arrURL)
+
+	defer r.Body.Close()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var newURL = model.URLLink{}
+	var arrURLResponse []UserURLLinksResponse
+
+	for _, urlValue := range arrURL {
+		u := helper.IsURL(urlValue.OriginalUrl)
+		if !u {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		code := helper.NewCode()
+		newURL.ID = time.Now().UnixNano()
+		newURL.UserID = ret
+		newURL.Code = code
+		shortLink := helper.Concat2builder(s.Config.GetConfig().ServerAddress, "/", code)
+
+		newURL.ShortLink = shortLink
+		newURL.Long = urlValue.OriginalUrl
+		err = s.Service.AddLink(newURL)
+		if err != nil {
+			fmt.Println(err)
+		}
+		arrURLResponse = append(arrURLResponse, UserURLLinksResponse{ShortUrl: shortLink, Correlation: urlValue.Correlation})
+	}
+
+	res, err := json.Marshal(arrURLResponse)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	w.Write(res)
 }
 

@@ -69,7 +69,8 @@ func (m *DB) AddLink(model model.URLLink) error {
 func (m *DB) GetLinksUser(user uuid.UUID) ([]model.UserURLLinks, error) {
 	var ps []model.UserURLLinks
 
-	rows, err := m.pool.Query(context.Background(), "select id, code, long, user_id from public.url_link  where user_id = $1", user)
+	rows, err := m.pool.Query(context.Background(),
+		"select id, code, long, user_id from public.url_link  where user_id = $1", user)
 
 	if err != nil {
 		return []model.UserURLLinks{}, err

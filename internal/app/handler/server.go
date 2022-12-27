@@ -31,6 +31,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Compress(5, "application/json", "text/plain", "application/x-gzip"))
 
 	s.Router.Get("/api/user/urls", s.GetUserURL)
+	s.Router.Post("/api/shorten/batch", s.BatchShorten)
 	s.Router.Post("/api/shorten", s.ShortHandler)
 	s.Router.Get("/ping", s.Ping)
 	s.Router.Get("/{shortUrl}", s.Redirect)

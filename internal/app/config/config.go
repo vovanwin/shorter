@@ -26,8 +26,8 @@ type Config struct {
 	FileStoragePath     string `env:"FILE_STORAGE_PATH" envDefault:"./storage/url.json"`
 	FileStoragePathTest string `env:"FILE_STORAGE_PATH" envDefault:"./../../../storage/test.json"`
 	Key                 string `env:"KEY" envDefault:"hfjvjdjcdsdsdfdshfjvjdjcdsdsdfds"`
-	DatabaseDsn         string `env:"DATABASE_DSN" `
-	//DatabaseDsn         string `env:"DATABASE_DSN" envDefault:"postgres://default:secret@localhost:5432/shorter"`
+	//DatabaseDsn         string `env:"DATABASE_DSN" `
+	DatabaseDsn string `env:"DATABASE_DSN" envDefault:"postgres://default:secret@localhost:5432/shorter"`
 }
 
 // GetConfig TODO: возможно надо сделать синглтон
