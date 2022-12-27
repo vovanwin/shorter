@@ -7,10 +7,9 @@ import (
 
 func TestConcat2builder(t *testing.T) {
 	type args struct {
-		http string
-		x    string
-		z    string
-		y    string
+		x string
+		z string
+		y string
 	}
 	tests := []struct {
 		name string
@@ -19,13 +18,13 @@ func TestConcat2builder(t *testing.T) {
 	}{
 		{
 			name: "Позитивный тест",
-			args: args{"http://", "localhost", "/", "123"},
+			args: args{"localhost", "/", "123"},
 			want: "http://localhost/123",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := Concat2builder(tt.args.http, tt.args.x, tt.args.z, tt.args.y)
+			v := Concat2builder(tt.args.x, tt.args.z, tt.args.y)
 			assert.Equal(t, tt.want, v)
 		})
 	}
